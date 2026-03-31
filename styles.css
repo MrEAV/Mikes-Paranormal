@@ -1,0 +1,351 @@
+:root {
+  --bg-night: #06090f;
+  --bg-steel: #0f1924;
+  --fog: #89a6c4;
+  --ink: #eef4ff;
+  --muted: #a5b4c8;
+  --signal: #4ed1ba;
+  --signal-dim: #2f8b8f;
+  --card: rgba(12, 20, 30, 0.78);
+  --line: rgba(142, 171, 199, 0.28);
+  --danger: #d79a7e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Source Sans 3", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 15% -5%, rgba(78, 209, 186, 0.12), transparent 50%),
+    radial-gradient(900px 500px at 85% 2%, rgba(215, 154, 126, 0.11), transparent 48%),
+    linear-gradient(180deg, var(--bg-steel) 0%, var(--bg-night) 52%, #05070a 100%);
+  min-height: 100vh;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+.mist {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 24 24'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='24' height='24' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
+  mix-blend-mode: screen;
+  animation: drift 24s linear infinite;
+  opacity: 0.65;
+  z-index: -1;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-120px, -90px, 0);
+  }
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1rem clamp(1rem, 3vw, 3rem);
+  border-bottom: 1px solid var(--line);
+  background: rgba(5, 8, 13, 0.78);
+  backdrop-filter: blur(10px);
+}
+
+.brand {
+  font-family: "Cinzel", serif;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  justify-content: center;
+  gap: clamp(0.8rem, 2vw, 1.8rem);
+  flex-wrap: wrap;
+}
+
+.site-nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.site-nav a:hover,
+.site-nav a:focus-visible {
+  color: var(--signal);
+}
+
+.section {
+  width: min(1150px, 92vw);
+  margin: 0 auto;
+  padding: clamp(3rem, 6vw, 5.5rem) 0;
+}
+
+.hero {
+  padding-top: clamp(4rem, 10vw, 7rem);
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--signal);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Cinzel", serif;
+  margin: 0;
+  line-height: 1.1;
+}
+
+h1 {
+  font-size: clamp(2.1rem, 8vw, 5.1rem);
+  max-width: 14ch;
+  margin-top: 0.7rem;
+}
+
+h2 {
+  font-size: clamp(1.45rem, 4vw, 2.8rem);
+  margin-top: 0.6rem;
+  max-width: 19ch;
+}
+
+.hero-copy {
+  font-size: clamp(1rem, 2.2vw, 1.3rem);
+  color: var(--muted);
+  max-width: 60ch;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-top: 1.4rem;
+}
+
+.btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.72rem 1.2rem;
+  text-decoration: none;
+  color: #041017;
+  background: linear-gradient(120deg, var(--signal), #7ad7ef);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(78, 209, 186, 0.2);
+  transition: transform 0.24s ease, box-shadow 0.24s ease;
+}
+
+.btn:hover,
+.btn:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(78, 209, 186, 0.28);
+}
+
+.btn-small {
+  padding: 0.58rem 0.95rem;
+  font-size: 0.92rem;
+}
+
+.btn-ghost {
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+.signal-grid {
+  margin-top: 2.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(70px, 110px));
+  gap: 0.75rem;
+}
+
+.signal-grid span {
+  border: 1px solid var(--line);
+  border-radius: 0.45rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+  text-align: center;
+  padding: 0.45rem 0.3rem;
+  background: rgba(15, 25, 36, 0.6);
+}
+
+.section-heading {
+  margin-bottom: 1.6rem;
+}
+
+.card-grid,
+.team-grid,
+.evidence-list {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1rem;
+}
+
+.card,
+.member,
+.log,
+.contact-panel {
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  padding: 1.2rem;
+  background: var(--card);
+}
+
+.card {
+  grid-column: span 4;
+}
+
+.card p,
+.log p,
+.contact-panel p,
+.member p {
+  color: var(--muted);
+}
+
+.evidence {
+  position: relative;
+}
+
+.evidence::before {
+  content: "";
+  position: absolute;
+  left: -8vw;
+  right: -8vw;
+  top: 8%;
+  bottom: 8%;
+  background: linear-gradient(110deg, rgba(78, 209, 186, 0.08), rgba(6, 9, 15, 0));
+  z-index: -1;
+}
+
+.log {
+  grid-column: span 4;
+}
+
+.log-meta {
+  color: var(--danger);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+.member {
+  grid-column: span 3;
+  text-align: center;
+}
+
+.contact {
+  padding-bottom: clamp(4rem, 8vw, 7rem);
+}
+
+.contact-panel {
+  max-width: 740px;
+}
+
+.contact-form {
+  margin-top: 1.2rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.contact-form label {
+  display: grid;
+  gap: 0.3rem;
+  font-weight: 600;
+}
+
+input,
+textarea {
+  width: 100%;
+  border-radius: 0.6rem;
+  border: 1px solid var(--line);
+  background: rgba(7, 13, 20, 0.82);
+  color: var(--ink);
+  padding: 0.68rem 0.78rem;
+  font: inherit;
+}
+
+input:focus,
+textarea:focus {
+  outline: 2px solid rgba(78, 209, 186, 0.4);
+  border-color: rgba(78, 209, 186, 0.7);
+}
+
+.site-footer {
+  border-top: 1px solid var(--line);
+  text-align: center;
+  color: var(--muted);
+  padding: 1.6rem 1rem 2rem;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 1000px) {
+  .site-header {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 0.8rem;
+  }
+
+  .card,
+  .log {
+    grid-column: span 6;
+  }
+
+  .member {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 680px) {
+  .section {
+    width: min(92vw, 580px);
+  }
+
+  .card,
+  .log,
+  .member {
+    grid-column: span 12;
+  }
+
+  .signal-grid {
+    grid-template-columns: repeat(2, minmax(70px, 1fr));
+    max-width: 280px;
+  }
+}
