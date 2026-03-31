@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPECTER-7 | EVP Spirit Box Analyzer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #050508;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 24px 16px 40px;
+    font-family: 'Rajdhani', sans-serif;
+    color: #e0e0e0;
+  }
+
+  .site-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .site-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 5px;
+    color: #2a5a3a;
+    margin-bottom: 6px;
+  }
+
+  .site-tagline {
+    font-size: 12px;
+    color: #1a3a2a;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 3px;
+  }
+
+  .back-link {
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .back-link a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: #2a5a3a;
+    text-decoration: none;
+    letter-spacing: 2px;
+  }
+
+  .back-link a:hover {
+    color: #00ff88;
+  }
+
+  .app {
+    background: #0a0a0f;
+    width: 100%;
+    max-width: 480px;
+    border-radius: 14px;
+    border: 1px solid #1a3a2a;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scanlines {
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,100,0.012) 2px, rgba(0,255,100,0.012) 4px);
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 14px;
+  }
+
+  .content { position: relative; z-index: 1; }
+
+  .header {
+    text-align: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #1a3a2a;
+    padding-bottom: 16px;
+  }
+
+  .app-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 26px;
+    color: #00ff88;
+    letter-spacing: 8px;
+    text-shadow: 0 0 10px rgba(0,255,136,0.35);
+  }
+
+  .app-sub {
+    font-size: 11px;
+    color: #3a7a5a;
+    letter-spacing: 3px;
+    margin-top: 5px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .freq-display {
+    background: #060f09;
+    border: 1px solid #1a4a2a;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  .freq-label { font-size: 10px; color: #3a7a5a; letter-spacing: 3px; font-family: 'Share Tech Mono', monospace; }
+
+  .freq-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 48px;
+    color: #00ff88;
+    text-shadow: 0 0 14px rgba(0,255,136,0.45);
+    line-height: 1.1;
+  }
+
+  .freq-unit { font-size: 18px; color: #3a7a5a; margin-left: 4px; }
+
+  .waveform {
+    width: 100%;
+    height: 60px;
+    margin: 12px 0 0;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #060f09;
+    border: 1px solid #1a3a2a;
+    display: block;
+  }
+
+  .bars-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .panel {
+    background: #060f09;
+    border: 1px solid #1a3a2a;
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .panel-label {
+    font-size: 10px;
+    color: #3a7a5a;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .meter-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .meter-name { font-size: 11px; color: #8a9a8a; width: 32px; font-family: 'Share Tech Mono', monospace; }
+
+  .meter-bar {
+    flex: 1;
+    height: 7px;
+    background: #0f1f14;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .meter-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.1s;
+  }
+
+  .meter-val { font-size: 10px; color: #4a8a6a; width: 38px; text-align: right; font-family: 'Share Tech Mono', monospace; }
+
+  .evp-log {
+    background: #060f09;
+    border: 1px solid #1a3a2a;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 14px;
+    height: 130px;
+    overflow-y: auto;
+  }
+
+  .evp-log::-webkit-scrollbar { width: 4px; }
+  .evp-log::-webkit-scrollbar-track { background: #0a0a0f; }
+  .evp-log::-webkit-scrollbar-thumb { background: #1a4a2a; border-radius: 2px; }
+
+  .log-entry {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    padding: 4px 0;
+    border-bottom: 1px solid #0f1f14;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+
+  .log-time { color: #2a5a3a; min-width: 44px; }
+  .log-freq { color: #3a7a5a; min-width: 68px; }
+  .log-msg { color: #00cc66; }
+  .log-anomaly { color: #ff6644; }
+  .log-normal { color: #2a5a3a; }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .btn {
+    padding: 12px 8px;
+    border-radius: 6px;
+    border: 1px solid;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    background: transparent;
+  }
+
+  .btn-scan { border-color: #00ff88; color: #00ff88; }
+  .btn-scan.active { background: #00ff88; color: #0a0a0f; box-shadow: 0 0 18px rgba(0,255,136,0.3); }
+  .btn-record { border-color: #ff4444; color: #ff4444; }
+  .btn-record.active { background: #ff4444; color: #fff; box-shadow: 0 0 18px rgba(255,68,68,0.3); }
+  .btn-evp { border-color: #4488ff; color: #4488ff; }
+  .btn-clear { border-color: #2a3a2a; color: #4a6a4a; }
+  .btn:hover { opacity: 0.85; transform: scale(0.98); }
+
+  .settings-panel {
+    margin-bottom: 14px;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .slider-label { font-size: 10px; color: #3a7a5a; width: 72px; letter-spacing: 1px; font-family: 'Share Tech Mono', monospace; }
+
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    background: #1a3a2a;
+    border-radius: 2px;
+    outline: none;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #00ff88;
+    cursor: pointer;
+    box-shadow: 0 0 6px rgba(0,255,136,0.4);
+  }
+
+  .slider-val { font-family: 'Share Tech Mono', monospace; font-size: 12px; color: #00cc66; width: 36px; text-align: right; }
+
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #060f09;
+    border: 1px solid #1a3a2a;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: #3a7a5a;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #2a4a2a;
+    display: inline-block;
+    margin-right: 5px;
+  }
+
+  .status-dot.active { background: #00ff88; box-shadow: 0 0 6px rgba(0,255,136,0.5); animation: pulse 1s infinite; }
+  .status-dot.recording { background: #ff4444; box-shadow: 0 0 6px rgba(255,68,68,0.5); animation: pulse 0.5s infinite; }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .anomaly-alert {
+    background: rgba(255,68,68,0.08);
+    border: 1px solid rgba(255,68,68,0.3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: #ff6644;
+    text-align: center;
+    margin-bottom: 12px;
+    display: none;
+    letter-spacing: 2px;
+  }
+
+  .anomaly-alert.show { display: block; animation: flicker 0.3s; }
+  @keyframes flicker { 0%{opacity:0} 50%{opacity:1} 75%{opacity:0.5} 100%{opacity:1} }
+
+  .footer {
+    margin-top: 24px;
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: #1a3a2a;
+    letter-spacing: 2px;
+  }
+
+  .footer a { color: #2a5a3a; text-decoration: none; }
+  .footer a:hover { color: #00ff88; }
+</style>
+</head>
+<body>
+
+<div class="site-header">
+  <div class="site-title">MIKE'S PARANORMAL INVESTIGATIONS</div>
+  <div class="site-tagline">BRATTLEBORO, VERMONT</div>
+  <div class="back-link"><a href="index.html">← BACK TO MAIN</a></div>
+</div>
+
+<div class="app">
+  <div class="scanlines"></div>
+  <div class="content">
+
+    <div class="header">
+      <div class="app-title">SPECTER-7</div>
+      <div class="app-sub">EVP / SPIRIT BOX ANALYZER v2.1</div>
+    </div>
+
+    <div class="freq-display">
+      <div class="freq-label">SCANNING FREQUENCY</div>
+      <div><span class="freq-num" id="freqDisplay">87.5</span><span class="freq-unit">MHz</span></div>
+      <canvas class="waveform" id="waveCanvas" height="60"></canvas>
+    </div>
+
+    <div id="anomalyAlert" class="anomaly-alert">⚠ ANOMALOUS SIGNAL DETECTED</div>
+
+    <div class="bars-grid">
+      <div class="panel">
+        <div class="panel-label">EMF READINGS</div>
+        <div class="meter-row">
+          <span class="meter-name">ELF</span>
+          <div class="meter-bar"><div class="meter-fill" id="elfBar" style="width:20%;background:#00cc66"></div></div>
+          <span class="meter-val" id="elfVal">0.2</span>
+        </div>
+        <div class="meter-row">
+          <span class="meter-name">VLF</span>
+          <div class="meter-bar"><div class="meter-fill" id="vlfBar" style="width:35%;background:#00cc66"></div></div>
+          <span class="meter-val" id="vlfVal">0.4</span>
+        </div>
+        <div class="meter-row">
+          <span class="meter-name">RF</span>
+          <div class="meter-bar"><div class="meter-fill" id="rfBar" style="width:15%;background:#00cc66"></div></div>
+          <span class="meter-val" id="rfVal">0.1</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-label">ENVIRONMENT</div>
+        <div class="meter-row">
+          <span class="meter-name">TEMP</span>
+          <div class="meter-bar"><div class="meter-fill" id="tempBar" style="width:60%;background:#4488ff"></div></div>
+          <span class="meter-val" id="tempVal">68°F</span>
+        </div>
+        <div class="meter-row">
+          <span class="meter-name">HUM</span>
+          <div class="meter-bar"><div class="meter-fill" id="humBar" style="width:45%;background:#4488ff"></div></div>
+          <span class="meter-val" id="humVal">45%</span>
+        </div>
+        <div class="meter-row">
+          <span class="meter-name">ION</span>
+          <div class="meter-bar"><div class="meter-fill" id="ionBar" style="width:25%;background:#aa44ff"></div></div>
+          <span class="meter-val" id="ionVal">LOW</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="evp-log" id="evpLog">
+      <div class="log-entry">
+        <span class="log-time">00:00</span>
+        <span class="log-freq">---.-- MHz</span>
+        <span class="log-normal">System initialized. Ready to scan.</span>
+      </div>
+    </div>
+
+    <div class="panel settings-panel">
+      <div class="panel-label">SCAN SETTINGS</div>
+      <div class="slider-row">
+        <span class="slider-label">SPEED</span>
+        <input type="range" id="speedSlider" min="1" max="10" value="5" step="1">
+        <span class="slider-val" id="speedVal">5</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label">SENSITIVITY</span>
+        <input type="range" id="sensSlider" min="1" max="10" value="6" step="1">
+        <span class="slider-val" id="sensVal">6</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label">BAND</span>
+        <input type="range" id="rangeSlider" min="0" max="1" value="0" step="1">
+        <span class="slider-val" id="rangeVal">FM</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-scan" id="scanBtn" onclick="toggleScan()">▶ SCAN</button>
+      <button class="btn btn-record" id="recordBtn" onclick="toggleRecord()">⏺ RECORD</button>
+      <button class="btn btn-evp" onclick="triggerEVP()">◈ EVP SESSION</button>
+      <button class="btn btn-clear" onclick="clearLog()">✕ CLEAR LOG</button>
+    </div>
+
+    <div class="status-bar">
+      <div><span class="status-dot" id="scanDot"></span><span id="scanStatus">STANDBY</span></div>
+      <div><span class="status-dot" id="recDot"></span><span id="recStatus">NOT RECORDING</span></div>
+      <div id="sessionTime">00:00:00</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">
+  <p>SPECTER-7 &mdash; FOR ENTERTAINMENT PURPOSES</p>
+  <p style="margin-top:6px;"><a href="index.html">← RETURN TO SITE</a></p>
+</div>
+
+<script>
+let scanning = false, recording = false;
+let freq = 87.5;
+let scanInterval, clockInterval;
+
+const evpPhrases = [
+  "help me","leave now","cold","behind you","don't go","listen","yes","no","here","watching",
+  "go away","1887","asylum","tower","death","help","stay","dark","find","name","trapped","alone",
+  "Williams","retreat","soldier","Eunice","tell them","can you hear","basement","mirror","run",
+  "Brattleboro","cemetery","unknown","1834","cold spot","who's there","don't leave"
+];
+
+const anomalyMessages = [
+  "FREQUENCY SPIKE — possible EVP window",
+  "EMF SURGE DETECTED at current frequency",
+  "TEMPERATURE DROP — 4.2°F in 3 seconds",
+  "UNEXPLAINED AUDIO ARTIFACT captured",
+  "SIGNAL COHERENCE ANOMALY detected",
+  "CLASS-A EVP CANDIDATE — review recording"
+];
+
+function fmt2(n){ return String(n).padStart(2,'0'); }
+function getTime(){ const n=new Date(); return fmt2(n.getMinutes())+':'+fmt2(n.getSeconds()); }
+
+function addLog(msg, type='normal'){
+  const log = document.getElementById('evpLog');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  const freqStr = scanning ? freq.toFixed(1)+' MHz' : '---.-- MHz';
+  entry.innerHTML = `<span class="log-time">${getTime()}</span><span class="log-freq">${freqStr}</span><span class="log-${type}">${msg}</span>`;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+}
+
+function toggleScan(){
+  scanning = !scanning;
+  const btn = document.getElementById('scanBtn');
+  const dot = document.getElementById('scanDot');
+  const status = document.getElementById('scanStatus');
+  if(scanning){
+    btn.textContent = '⏹ STOP'; btn.classList.add('active');
+    dot.classList.add('active'); status.textContent = 'SCANNING';
+    addLog('Scan initiated — sweep mode active','msg');
+    startScan();
+  } else {
+    btn.textContent = '▶ SCAN'; btn.classList.remove('active');
+    dot.classList.remove('active'); status.textContent = 'STANDBY';
+    addLog('Scan stopped');
+    clearInterval(scanInterval);
+  }
+}
+
+function startScan(){
+  clearInterval(scanInterval);
+  const speed = parseInt(document.getElementById('speedSlider').value);
+  const isAM = document.getElementById('rangeSlider').value === '1';
+  scanInterval = setInterval(()=>{
+    if(isAM){ freq += (Math.random()-0.3)*20; freq = Math.max(530,Math.min(1700,freq)); }
+    else { freq += (Math.random()>0.5?0.1:-0.1)*(Math.random()*2); freq = Math.max(87.5,Math.min(108.0,freq)); }
+    document.getElementById('freqDisplay').textContent = isAM ? Math.round(freq) : freq.toFixed(1);
+    const sens = parseInt(document.getElementById('sensSlider').value);
+    if(Math.random() < 0.03*(sens/5)) triggerAnomaly();
+  }, Math.max(50, 600-speed*55));
+}
+
+function triggerAnomaly(){
+  const alert = document.getElementById('anomalyAlert');
+  const msg = anomalyMessages[Math.floor(Math.random()*anomalyMessages.length)];
+  alert.textContent = '⚠ '+msg;
+  alert.classList.add('show');
+  addLog(msg,'anomaly');
+  setTimeout(()=> alert.classList.remove('show'), 3000);
+  if(Math.random()<0.4){
+    const phrase = evpPhrases[Math.floor(Math.random()*evpPhrases.length)];
+    setTimeout(()=> addLog('"'+phrase.toUpperCase()+'" — possible EVP fragment','anomaly'), 800);
+  }
+}
+
+function toggleRecord(){
+  recording = !recording;
+  const btn = document.getElementById('recordBtn');
+  const dot = document.getElementById('recDot');
+  const status = document.getElementById('recStatus');
+  if(recording){
+    btn.textContent = '⏹ STOP REC'; btn.classList.add('active');
+    dot.classList.add('recording'); status.textContent = 'RECORDING';
+    addLog('Recording started — EVP capture active','msg');
+    const t0 = Date.now();
+    clockInterval = setInterval(()=>{
+      const s = Math.floor((Date.now()-t0)/1000);
+      document.getElementById('sessionTime').textContent = fmt2(Math.floor(s/3600))+':'+fmt2(Math.floor((s%3600)/60))+':'+fmt2(s%60);
+    },1000);
+  } else {
+    btn.textContent = '⏺ RECORD'; btn.classList.remove('active');
+    dot.classList.remove('recording'); status.textContent = 'SAVED';
+    addLog('Recording saved');
+    clearInterval(clockInterval);
+  }
+}
+
+function triggerEVP(){
+  if(!scanning){ addLog('Start scan first to run EVP session','anomaly'); return; }
+  addLog('EVP session started — 30 second window','msg');
+  let count = 0;
+  const evpTimer = setInterval(()=>{
+    count++;
+    const phrase = evpPhrases[Math.floor(Math.random()*evpPhrases.length)];
+    if(Math.random()<0.6) addLog('"'+phrase.toUpperCase()+'" — fragment detected','anomaly');
+    else addLog('Listening... no signal at '+freq.toFixed(1)+' MHz');
+    if(count>=6){ clearInterval(evpTimer); addLog('EVP session complete','msg'); }
+  }, 5000);
+}
+
+function clearLog(){
+  document.getElementById('evpLog').innerHTML = '<div class="log-entry"><span class="log-time">--:--</span><span class="log-freq">---.--</span><span class="log-normal">Log cleared.</span></div>';
+}
+
+setInterval(()=>{
+  const sens = parseInt(document.getElementById('sensSlider').value)/10;
+  const spike = scanning && Math.random()<0.15 ? Math.random()*0.8 : 0;
+  const elf = Math.min(1, 0.1+Math.random()*0.3*sens+spike*0.5);
+  const vlf = Math.min(1, 0.2+Math.random()*0.4*sens+spike*0.3);
+  const rf  = Math.min(1, 0.05+Math.random()*0.2*sens+spike*0.7);
+  document.getElementById('elfBar').style.width = (elf*100).toFixed(0)+'%';
+  document.getElementById('vlfBar').style.width = (vlf*100).toFixed(0)+'%';
+  document.getElementById('rfBar').style.width  = (rf*100).toFixed(0)+'%';
+  const emfColor = spike > 0.3 ? '#ff6644' : '#00cc66';
+  ['elfBar','vlfBar','rfBar'].forEach(id=> document.getElementById(id).style.background = emfColor);
+  document.getElementById('elfVal').textContent = elf.toFixed(1);
+  document.getElementById('vlfVal').textContent = vlf.toFixed(1);
+  document.getElementById('rfVal').textContent  = rf.toFixed(1);
+  const temp = 68 + (spike>0.4?-Math.round(spike*8):0) + Math.round((Math.random()-0.5)*2);
+  const hum = 45 + Math.round((Math.random()-0.5)*6);
+  const ion = vlf>0.7?'HIGH':vlf>0.4?'MED':'LOW';
+  document.getElementById('tempBar').style.width = Math.max(10,Math.min(100,temp)).toFixed(0)+'%';
+  document.getElementById('humBar').style.width = hum+'%';
+  document.getElementById('ionBar').style.width = (ion==='HIGH'?80:ion==='MED'?50:25)+'%';
+  document.getElementById('tempVal').textContent = temp+'°F';
+  document.getElementById('humVal').textContent = hum+'%';
+  document.getElementById('ionVal').textContent = ion;
+  document.getElementById('tempBar').style.background = temp < 64 ? '#ff6644' : '#4488ff';
+}, 300);
+
+const canvas = document.getElementById('waveCanvas');
+const ctx = canvas.getContext('2d');
+const wavePoints = new Array(80).fill(30);
+
+function resizeCanvas(){
+  canvas.width = canvas.offsetWidth;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+setInterval(()=>{
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle = '#00ff88';
+  ctx.lineWidth = 1.5;
+  wavePoints.shift();
+  wavePoints.push(scanning ? 30+(Math.random()-0.5)*40+Math.sin(Date.now()/200)*10 : 30+(Math.random()-0.5)*3);
+  ctx.beginPath();
+  wavePoints.forEach((y,i)=>{
+    const x = (i/wavePoints.length)*canvas.width;
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+}, 50);
+
+document.getElementById('speedSlider').oninput = function(){
+  document.getElementById('speedVal').textContent = this.value;
+  if(scanning) startScan();
+};
+document.getElementById('sensSlider').oninput = function(){ document.getElementById('sensVal').textContent = this.value; };
+document.getElementById('rangeSlider').oninput = function(){
+  const isAM = this.value === '1';
+  document.getElementById('rangeVal').textContent = isAM ? 'AM' : 'FM';
+  freq = isAM ? 1000 : 87.5;
+  if(scanning) startScan();
+};
+</script>
+</body>
+</html>
